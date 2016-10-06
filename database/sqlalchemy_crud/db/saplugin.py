@@ -21,14 +21,12 @@ class SAEnginePlugin(plugins.SimplePlugin):
         using the mapped class of the global metadata.
         """
         plugins.SimplePlugin.__init__(self, bus)
+        self.bus.log('Starting up DB access')
         self.sa_engine = None
         self.connection_string = connection_string
+        self.sa_engine = create_engine(self.connection_string, echo=False)
         self.session = scoped_session(sessionmaker(autoflush=True,
                                                    autocommit=False))
-
-    def start(self):
-        self.bus.log('Starting up DB access')
-        self.sa_engine = create_engine(self.connection_string, echo=False)
         self.bus.subscribe("bind-session", self.bind)
         self.bus.subscribe("commit-session", self.commit)
 
