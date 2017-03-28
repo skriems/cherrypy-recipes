@@ -1,13 +1,42 @@
-# -*- coding: utf-8 -*-
+from cherrypy.process import plugins
 
-# see https://bitbucket.org/Lawouach/cherrypy-recipes
-
-import cherrypy
-from cherrypy.process import wspbus, plugins
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-__all__ = ['SAEnginePlugin']
+from psycopg2.pool import ThreadedConnectionPool
+
+
+class Psycopg2Plugin(plugins.SimplePlugin):
+    def __init__(self, bus, settings):
+        super(Psycopg2Plugin, self).__init__(bus)
+        self.pool = ThreadedConnectionPool(**settings)
+        self.bus.log('Started DB Connection Pool with %s/%s (min/max)'
+                     ' connections.' % (settings['minconn'],
+                                        settings['maxconn'])
+                     )
+        self.connection = None
+        self.bus.subscribe('bind-connection', self.bind)
+        self.bus.subscribe('commit-connection', self.commit)
+
+    def stop(self):
+        self.bus.log('Stopping DB Connection Pool')
+        self.bus.unsubscribe('bind-connection', self.bind)
+        self.bus.unsubscribe('commit-connection', self.commit)
+
+    def bind(self):
+        if not self.connection:
+            self.connection = self.pool.getconn()
+        return self.connection
+
+    def commit(self):
+        try:
+            self.connection.commit()
+        except:
+            self.connection.rollback()
+            raise
+        finally:
+            self.pool.putconn(self.connection)
+            self.connection = None
 
 
 class SAEnginePlugin(plugins.SimplePlugin):

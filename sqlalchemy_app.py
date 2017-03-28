@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
 
+from db.plugins import SAEnginePlugin
+from db.tools import SATool
+from db.sa_models import Entry
+
 import cherrypy
-from db.models import Entry
 
 
 class Root(object):
@@ -12,11 +15,11 @@ class Root(object):
     def index(self):
         base = cherrypy.request.base
         crud = OrderedDict([
-            ('C', base + '/create?name=test'),
-            ('R', base + '/read'),
-            ('U', base + '/update?name=test&newname=test_updated'),
-            ('D', base + '/delete?id=1')
-            ])
+            ('C', base + '/create/?name=test'),
+            ('R', base + '/read/'),
+            ('U', base + '/update/?name=test&newname=test_updated'),
+            ('D', base + '/delete/?id=1')
+        ])
         return {'examples_commands': crud}
 
     @cherrypy.expose
@@ -54,8 +57,6 @@ class Root(object):
 
 
 def create_app():
-    from db.saplugin import SAEnginePlugin
-    from db.satool import SATool
     SAEnginePlugin(cherrypy.engine, 'sqlite:///db/test.db').subscribe()
     cherrypy.tools.db = SATool()
 
@@ -69,10 +70,10 @@ def create_app():
 
 
 def run():
-    app = create_app()
+    application = create_app()
     cherrypy.config.update({
             # 'server.socket_host': '0.0.0.0',
-            'server.socket_port': 8080,
+            'server.socket_port': 8000,
         })
     cherrypy.engine.signals.subscribe()
     cherrypy.engine.start()

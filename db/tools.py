@@ -1,10 +1,27 @@
-# -*- coding: utf-8 -*-
-
-# see https://bitbucket.org/Lawouach/cherrypy-recipes
-
 import cherrypy
 
-__all__ = ['SATool']
+
+class Psycopg2Tool(cherrypy.Tool):
+    def __init__(self):
+        super(Psycopg2Tool, self).__init__('on_start_resource',
+                                           self.bind_connection,
+                                           priority=20)
+
+    def _setup(self):
+        cherrypy.Tool._setup(self)
+        cherrypy.request.hooks.attach('on_end_resource',
+                                      self.commit_connection,
+                                      priority=80)
+
+    def bind_connection(self):
+        connection = cherrypy.engine.publish('bind-connection').pop()
+        cherrypy.request.db = connection
+
+    def commit_connection(self):
+        if not hasattr(cherrypy.request, 'db'):
+            return
+        cherrypy.request.db = None
+        cherrypy.engine.publish('commit-connection')
 
 
 class SATool(cherrypy.Tool):
