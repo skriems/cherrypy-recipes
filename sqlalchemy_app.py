@@ -20,7 +20,7 @@ class Root(object):
             ('U', base + '/update/?name=test&newname=test_updated'),
             ('D', base + '/delete/?id=1')
         ])
-        return {'examples_commands': crud}
+        return {'example_commands': crud}
 
     @cherrypy.expose
     def create(self, name):

@@ -20,7 +20,7 @@ class Root(object):
             ('U', base + '/update/?name=test&newname=test_updated'),
             ('D', base + '/delete/?name=test_updated')
         ])
-        return {'examples_commands': crud}
+        return {'example_commands': crud}
 
     @cherrypy.tools.json_out()
     @cherrypy.expose
@@ -36,10 +36,7 @@ class Root(object):
         cur.execute('SELECT * from testing;')
         results = cur.fetchall()
         if results:
-            return [
-                dict(id=r[0], name=r[1])
-                for r in results
-            ]
+            return [dict(id=r[0], name=r[1]) for r in results]
         return []
 
     @cherrypy.tools.json_out()
