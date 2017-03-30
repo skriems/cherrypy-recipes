@@ -2,3 +2,5 @@ CherryPy>=10.2.1
 jaraco.postgres>=1.6
 psycopg2>=2.7.1
 SQLAlchemy>=1.1.6
+pytest>=3.0.7
+WebTest>=2.0.27
