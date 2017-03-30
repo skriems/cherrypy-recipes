@@ -27,7 +27,8 @@ class Root(object):
     def create(self, name):
         cur = cherrypy.request.db.cursor()
         cur.execute('INSERT INTO testing (name) VALUES (%s);', (name,))
-        raise cherrypy.HTTPRedirect('/read/')
+        cherrypy.response.status = 201
+        return dict(status='Created')
 
     @cherrypy.tools.json_out()
     @cherrypy.expose
@@ -36,6 +37,7 @@ class Root(object):
         cur.execute('SELECT * from testing;')
         results = cur.fetchall()
         if results:
+            cherrypy.response.status = 200
             return [dict(id=r[0], name=r[1]) for r in results]
         return []
 
@@ -45,14 +47,16 @@ class Root(object):
         cur = cherrypy.request.db.cursor()
         cur.execute(
             'UPDATE testing SET name=%s WHERE name=%s;', (newname, name))
-        raise cherrypy.HTTPRedirect('/read/')
+        cherrypy.response.status = 202
+        return dict(status='Accepted')
 
     @cherrypy.tools.json_out()
     @cherrypy.expose
     def delete(self, name):
         cur = cherrypy.request.db.cursor()
         cur.execute("DELETE FROM testing WHERE name=%s;", (name,))
-        raise cherrypy.HTTPRedirect('/read/')
+        cherrypy.response.status = 202
+        return dict(status='Accepted')
 
 
 def create_app():
